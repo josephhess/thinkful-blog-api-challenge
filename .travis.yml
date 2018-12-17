@@ -1,2 +1,9 @@
 language: node_js
 node_js: node
+deploy:
+  provider: heroku
+  api_key:
+    secure: nDK9kJ2pgBCzy+qIs5xiLw9DNIPmI1wCO7DsImpaIl9LFhtYSIoB7+lACIHdTwoP1LRJdsVvwcGxJec+WvEI+4ybbmpqf1ghhVTavYXBHXYr7jmm53Jh9MQhzEv+AYKBUXymw5V89lMMukTNTVxLS+LP9N13EXR39ctMZRUkvLx9T8yNCZKGRv5dINR6GfATo5EosgpWngYCI5nF77Jw6cbgjsUdSXGaLpi2b/a1hk5e5rAbBwR/+tLl85h2H+LJejbBS+rUzUcKMHQNvPlfYJaMMXG4gkMibdDeliF/eRZyIWac81zRwtdtdK8xCPL0+A32IAfeIoPnrzGMe20DtLrX0kjjq4B2dOfWNRohz0zljjstSKSqf2lewdlmo/ikP2wNtD9ZOljKesz5qjDyFn94g6BsiNTrSVdR0VpDf95Rq8c4ScGwVwiIjVQsUxzfIY/rSh59W4EA/xOwYCaveStWlXz4HGB2DvZA82x1c/smAmBz3kHVwjUUjS/lp4/HXNuAvWII16N28OS2lAbBck7+e+ehKWX67U9dTHAvKrx+Y2KHMVEgWe0V+NeaV/3o6YEwRrGTOyQ8Xrfu3RLQ5Cc+sPqL0Bqx1ymhWA+FfHI9Pa1pMhOAZBs2eNycMoU45d2orBcyQZvzOWfpaUxrd0G57OE1WrenyPtG9F9kWXk=
+  app: pacific-castle-52965
+  on:
+    repo: josephhess/thinkful-blog-api-challenge
