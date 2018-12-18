@@ -23,7 +23,6 @@ router.post('/', jsonParser, (req, res) => {
 
   for (let field of requiredFields){
     if (!(field in req.body)){
-      console.log('reached');
       const message = `missing "${field}" in request body`;
       console.error(message);
       return res.status(400).send(message);
@@ -56,9 +55,9 @@ router.put('/:id', jsonParser, (req, res) => {
   const updatedPost = BlogPosts.update({
     id: values.id,
     title: values.title,
+    content: values.content,
     author: values.author
     })
-  console.log(updatedPost);
   res.status(200).json(updatedPost);
 })
 
