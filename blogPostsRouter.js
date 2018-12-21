@@ -1,22 +1,34 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
-const {BlogPosts} = require('./models');
+mongoose.Promise = global.Promise;
+const {BlogPost} = require('./models');
 
-
-BlogPosts.create(
-  'test post 1', 'this is the test content', 'jojo'
-  );
-BlogPosts.create(
-  'test post 2', 'this is more test content', 'john wayne'
-  );
+// mongoimport --db blogposts-app --collection blogposts --drop --file ~/seed-data.json
 
 router.get('/', (req, res) => {
-  res.json(BlogPosts.get());
-})
+  BlogPost.find()
+  .then(BlogPosts => res.json(
+      BlogPosts.map(blogpost => blogpost.serialize())
+  ))
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({message: 'Internal Server Error'})
+  });
+});
+
+router.get('/:id', (req,res) => {
+  BlogPost.findById(req.params.id)
+    .then(post => res.json(post.serialize()))
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: err.message})
+    });
+});
 
 router.post('/', jsonParser, (req, res) => {
   const requiredFields = ['title', 'content', 'author'];
@@ -27,44 +39,65 @@ router.post('/', jsonParser, (req, res) => {
       console.error(message);
       return res.status(400).send(message);
     }
-    const post = BlogPosts.create(
-        req.body.title, req.body.content, req.body.author, req.body.publishedDate
-      )
-    return res.status(201).json(post);
   }
+    BlogPost.create({
+      title: req.body.title,
+      content: req.body.content,
+      author: {
+        firstName: req.body.author.firstName,
+        lastName: req.body.author.lastName
+      }
+
+      })
+      .then(post => {
+        return res.status(201).json(post.serialize())
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(500).json({message: err.message});
+      });
+
 })
 
 router.put('/:id', jsonParser, (req, res) => {
-  const requiredFields = ['id', 'title', 'content', 'author'];
   const id = req.params.id;
   const values = req.body;
 
-  for (let field of requiredFields){
-    if (!(field in values)){
-      const message = `missing "${field}" in request body`;
-      console.error(message);
-      return res.status(400).json(message);
-    }
-  }
   if(req.params.id !== values.id){
     const message = `id in request params (${req.params.id}) does not match id in request body (${values.id})`;
     console.error(message);
     return res.status(400).json(message);
   }
+
   console.log(`updating blog post with id of ${req.body.id}`);
-  const updatedPost = BlogPosts.update({
-    id: values.id,
-    title: values.title,
-    content: values.content,
-    author: values.author
-    })
-  res.status(200).json(updatedPost);
-})
+  const postUpdate = {};
+  const updateableFields = ['title', 'content', 'author'];
+  updateableFields.forEach(field => {
+    if (field in req.body){
+      if(field === 'author'){
+        if (req.body.author.firstName){
+          postUpdate['author.firstName'] = req.body.author.firstName;
+        }
+        if (req.body.author.lastName){
+          postUpdate['author.lastName'] = req.body.author.lastName;
+        }
+      } else {
+        postUpdate[field] = req.body[field];
+      }
+    }
+  });
+  BlogPost.findByIdAndUpdate(req.params.id, {$set: postUpdate}, {new: true})
+  .then(post => res.status(200).json(post))
+  .catch(err => res.status(500).json({message: err.message}));
+});
 
 router.delete('/:id', (req, res) => {
-  BlogPosts.delete(req.params.id);
-  console.log(`deleted post with id of ${req.params.id}`);
-  res.status(204).end();
-})
+  BlogPost.findByIdAndRemove(req.params.id)
+  .then(post => {
+    res.status(204).end();
+    console.log(`deleted post with id of ${req.params.id}`);
+  })
+  .catch( err => res.status(500).json({message: err.message}));
+});
 
 module.exports = router;

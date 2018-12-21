@@ -1,41 +1,54 @@
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
+const mongoose = require('mongoose');
 const blogPostsRouter = require('./blogPostsRouter');
 
 app.use(express.json());
 app.use(morgan('common'));
+const { PORT, DATABASE_URL } = require("./config");
 app.use('/blog-posts', blogPostsRouter);
 
 let server;
 
-function runServer() {
-  const port = process.env.PORT || 8080;
+function runServer(DATABASE_URL, port = PORT) {
   return new Promise((resolve, reject) => {
-    server = app
-      .listen(port, () => {
-        console.log(`App is listening on ${port}`);
-        resolve(server);
-      })
-      .on("error", err => reject(err))
+    mongoose.connect(
+      DATABASE_URL,
+      err => {
+        if (err) {
+          return reject(err);
+        }
+        server = app
+          .listen(port, () => {
+            console.log(`Your app is listening on port ${port}`);
+            resolve();
+          })
+          .on("error", err => {
+            mongoose.disconnect();
+            reject(err);
+          });
+      }
+    );
   });
 }
 
 function closeServer() {
-  return new Promise((resolve, reject) => {
-    console.log('Closing Server');
-    server.close(err => {
-      if(err) {
-        reject(err);
-        return;
-      }
-      resolve();
-    })
+  return mongoose.disconnect().then(() => {
+    return new Promise((resolve, reject) => {
+      console.log("Closing server");
+      server.close(err => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
   });
 }
 
 if(require.main === module) {
-  runServer().catch(err => console.error(err));
+  runServer(DATABASE_URL).catch(err => console.error(err));
 }
 
 module.exports = { app, runServer, closeServer };
