@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 mongoose.Promise = global.Promise;
-const {BlogPost} = require('./models');
+const {BlogPost} = require('../models/blogpost');
 
 router.get('/', (req, res) => {
   BlogPost.find()
