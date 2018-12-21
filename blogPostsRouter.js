@@ -8,8 +8,6 @@ const jsonParser = bodyParser.json();
 mongoose.Promise = global.Promise;
 const {BlogPost} = require('./models');
 
-// mongoimport --db blogposts-app --collection blogposts --drop --file ~/seed-data.json
-
 router.get('/', (req, res) => {
   BlogPost.find()
   .then(BlogPosts => res.json(
