@@ -6,10 +6,12 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 mongoose.Promise = global.Promise;
-const {BlogPost} = require('../models/blogpost');
+const { BlogPost } = require('../models/blogpost');
+const { Author } = require('../models/author');
 
 router.get('/', (req, res) => {
   BlogPost.find()
+  .populate('author')
   .then(BlogPosts => res.json(
       BlogPosts.map(blogpost => blogpost.serialize())
   ))
@@ -21,6 +23,7 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req,res) => {
   BlogPost.findById(req.params.id)
+    .populate('author')
     .then(post => res.json(post.serialize()))
     .catch(err => {
       console.error(err);
@@ -38,22 +41,25 @@ router.post('/', jsonParser, (req, res) => {
       return res.status(400).send(message);
     }
   }
-    BlogPost.create({
-      title: req.body.title,
-      content: req.body.content,
-      author: {
-        firstName: req.body.author.firstName,
-        lastName: req.body.author.lastName
-      }
-
-      })
-      .then(post => {
-        return res.status(201).json(post.serialize())
-      })
-      .catch(err => {
-        console.error(err);
-        res.status(500).json({message: err.message});
+    Author.create({
+      firstName: req.body.author.firstName,
+      lastName: req.body.author.lastName,
+      userName: req.body.author.userName
+    })
+    .then(author => {
+      BlogPost.create({
+        title: req.body.title,
+        content: req.body.content,
+        author: author._id
       });
+    })
+    .then(post => {
+      return res.status(201).json(post.serialize())
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: err.message});
+    });
 
 })
 

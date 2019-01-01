@@ -2,14 +2,13 @@
 
 const mongoose = require('mongoose');
 
+const commentSchema = mongoose.Schema({content: 'string'});
 const blogSchema = mongoose.Schema({
 
   title: {type: String, required: true},
   content: {type: String, required: true},
-  author: {
-    firstName: {type: String, required: true},
-    lastName: {type: String, required: true}
-  }
+  author: {type: mongoose.Schema.Types.ObjectId, ref: 'Author'},
+  comments: [commentSchema]
 });
 
 blogSchema.set('timestamps', true);
